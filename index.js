@@ -56,7 +56,9 @@ app.post("/addToWatchlist", auth, async (req, res) => {
   try {
     const { coin } = req.body;
     const user = req.user;
-    user?.watchlist?.push(coin);
+    if(!(user.watchlist.includes(coin))){
+      user?.watchlist?.push(coin);
+    }
     await user?.save();
     res.status(200).json({ message: "Item added to watchlist" });
   } catch (error) {
@@ -64,6 +66,26 @@ app.post("/addToWatchlist", auth, async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+app.post("/removeFromWatchlist", auth, async (req, res) => {
+  try {
+    const { coin } = req.body;
+    const user = req.user;
+    const watchList = user?.watchlist;
+    user.watchlist = watchList.filter((watch)=> watch !== coin);
+    await user?.save();
+    console.log(user.watchlist)
+    res.status(200).json({ message: "Item removed from watchlist" });
+  } catch (error) {
+    console.error("Error removing item from watchlist:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.post("/watchList", auth, async (req,res) =>{
+  const user = req.user;
+  res.send(user?.watchlist);
+})
 
 app.get("/trendingCoins", async (req, res) => {
   const trendingCoins = [];
@@ -73,7 +95,7 @@ app.get("/trendingCoins", async (req, res) => {
   fetchedData?.data?.coins?.map((coin) => {
     trendingCoins.push(coin.item.symbol);
   });
-  console.log(trendingCoins);
+  // console.log(trendingCoins);
   res.send(trendingCoins);
 });
 

@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "./models.js";
 const auth = async (req,res,next)=>{
-   const userToken = req.headers["authorization"];
+   const userToken = req.body.headers["authorization"];
    if(userToken){
      const tokenUser = jwt.verify(userToken,"samplekey");
      const user = await User.findOne({userId:tokenUser.userId});
