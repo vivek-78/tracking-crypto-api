@@ -74,7 +74,6 @@ app.post("/removeFromWatchlist", auth, async (req, res) => {
     const watchList = user?.watchlist;
     user.watchlist = watchList.filter((watch)=> watch !== coin);
     await user?.save();
-    console.log(user.watchlist)
     res.status(200).json({ message: "Item removed from watchlist" });
   } catch (error) {
     console.error("Error removing item from watchlist:", error);
