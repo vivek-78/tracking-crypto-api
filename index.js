@@ -7,7 +7,7 @@ import cookies from "cookie-parser";
 import jwt from "jsonwebtoken";
 import auth from "./auth.js";
 import User from "./models.js";
-import "./cronjob.js";
+// import "./cronjob.js";
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -46,6 +46,7 @@ app.post("/login", async (req, res) => {
       token,
       firstName: user.firstName,
       userId: user.userId,
+      watchList:user.watchlist
     });
   } else {
     res.send("invalid details");
