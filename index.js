@@ -20,11 +20,15 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
+  console.log("/register");
   const { firstName, lastName, userId, email, password } = req.body;
   const existingUser = await User.findOne({ userId });
   const existingEmail = await User.findOne({ email });
-  if (existingUser || existingEmail) {
-    return res.status(409).json({ message: "User already exists" });
+  if (existingUser) {
+    return res.status(409).json({ message: "UserId already exists" });
+  }
+  if (existingEmail) {
+    return res.status(409).json({ message: "email already registered" });
   }
   const user = await User.create({
     firstName,
@@ -95,7 +99,6 @@ app.get("/trendingCoins", async (req, res) => {
   fetchedData?.data?.coins?.map((coin) => {
     trendingCoins.push(coin.item.symbol);
   });
-  // console.log(trendingCoins);
   res.send(trendingCoins);
 });
 
