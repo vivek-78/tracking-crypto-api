@@ -15,8 +15,8 @@ const sendMail = (userEmail, name,data) => {
   let MailGenerator = new Mailgen({
     theme: "default",
     product: {
-      name: "Mailgen",
-      link: "https://mailgen.js/",
+      name: "Crypto Tracker",
+      link: "http://localhost:3000/",
     },
   });
   let response = {
@@ -33,7 +33,7 @@ const sendMail = (userEmail, name,data) => {
   let message = {
     from: EMAIL,
     to: userEmail,
-    subject: "Place Order",
+    subject: "Big Moves in your watchlist",
     html: mail,
   };
   transporter

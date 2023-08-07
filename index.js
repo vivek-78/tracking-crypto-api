@@ -42,6 +42,7 @@ app.post("/register", async (req, res) => {
 });
  
 app.post("/login", async (req, res) => {
+  console.log("/login")
   const { userId, password } = req.body;
   const user = await User.findOne({ userId, password });
   if (user) {
@@ -58,11 +59,13 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/addToWatchlist", auth, async (req, res) => {
+  console.log("/addToWatchlist")
   try {
     const { coin } = req.body;
     const user = req.user;
-    if(!(user.watchlist.includes(coin))){
+    if(!(user?.watchlist.includes(coin))){
       user?.watchlist?.push(coin);
+      user?.emailWatchList.push({coinName:coin})
     }
     await user?.save();
     res.status(200).json({ message: "Item added to watchlist" });
@@ -73,12 +76,15 @@ app.post("/addToWatchlist", auth, async (req, res) => {
 });
 
 app.post("/removeFromWatchlist", auth, async (req, res) => {
+  console.log("/removeFromWatchlist");
   try {
     const { coin } = req.body;
     const user = req.user;
-    const watchList = user?.watchlist;
-    user.watchlist = watchList.filter((watch)=> watch !== coin);
-    await user?.save();
+    const newWatchList = user?.watchlist.filter((watch)=> watch !== coin);
+    const newEmailWatchlist = user?.emailWatchList.filter((coinData) => coinData.coinName !== coin);
+    user.watchlist = newWatchList;
+    user.emailWatchList = newEmailWatchlist;
+    await user.save();
     res.status(200).json({ message: "Item removed from watchlist" });
   } catch (error) {
     console.error("Error removing item from watchlist:", error);
@@ -87,11 +93,13 @@ app.post("/removeFromWatchlist", auth, async (req, res) => {
 });
 
 app.post("/watchList", auth, async (req,res) =>{
+  console.log("/watchList");
   const user = req.user;
   res.send(user?.watchlist);
 })
 
 app.get("/trendingCoins", async (req, res) => {
+  console.log("/trendingCoins");
   const trendingCoins = [];
   const fetchedData = await axios.get(
     "https://api.coingecko.com/api/v3/search/trending"
@@ -106,6 +114,48 @@ app.post("/sendMail", async (req, res) => {
   sendMail("vivek74543@gmail.com");
   res.sendStatus(200);
 });
+app.get("/checkCornJob",async()=>{
+  console.log("/checkCornJob")
+  try {
+    console.log("corn job try actitvated.....");
+    const users = await User.find({}, "userId email firstName emailWatchList");
+    for (var user of users) {
+      if (user.emailWatchList.length > 0) {
+        var email = user.email;
+        var name = user.firstName;
+        var watchlist = user.emailWatchList;
+        var coins = "";
+        var changedCoins = [];
+        for (const coinData of watchlist){
+         if(!coinData.mailSent) 
+          coins = coins + coinData.coinName + ",";
+          coinData.mailSent = true;
+        }
+        console.log(coins);
+        const fetchedData = await axios.get(
+          `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${coins}&tsyms=USD&api_key=6706b43124d7e0ea0461ed0aaba8e7f1ce88391081c5059678c0dd8fc9136325`
+        );
+        const coinsData = fetchedData?.data?.DISPLAY;
+        for (var fetchedCoin in coinsData) {
+          if (Math.abs(coinsData[fetchedCoin].USD.CHANGEPCT24HOUR) > 0) {
+            changedCoins.push({
+              coin: fetchedCoin, 
+              change_percent: coinsData[fetchedCoin]?.USD?.CHANGEPCT24HOUR+"%",
+            });
+          }
+        }
+        if(changedCoins.length > 0){
+        await sendMail(email,name,changedCoins);
+        user.emailWatchList = watchlist;
+        user.save();
+        console.log("mail sent!!");
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching users:", error);
+  }
+})
 app.listen(8080, () => {
   console.log("server running on port 8080");
 });
